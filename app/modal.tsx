@@ -1,35 +1,93 @@
-import { StatusBar } from 'expo-status-bar';
-import { Platform, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from "react";
+import { Modal, VStack, HStack, Text, Radio, Center, NativeBaseProvider, Pressable } from "native-base";
+import { getProdutos, setProdutos } from '@/constants/ItemsListTest';
+import { carrinhoSchema } from "@/models/CarrinhoSchame";
+import { produtoFormSchema } from "@/models/ProdutoSchema"; 
+import { z } from "zod";
+// import ModalEdit from "@/components/ModalEdit";
 
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
+type CarrinhoSchema = z.infer<typeof carrinhoSchema>;
+type ProdutoSchema = z.infer<typeof produtoFormSchema>;
 
-export default function ModalScreen() {
-  return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Modal</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/modal.tsx" />
-
-      {/* Use a light status bar on iOS to account for the black space above the modal */}
-      <StatusBar style={Platform.OS === 'ios' ? 'light' : 'auto'} />
-    </View>
-  );
+interface ModalProps {
+  isOpen: boolean;
+  onClose: () => void;
+  carrinho?: CarrinhoSchema[];
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  title: {
-    fontSize: 20,
-    fontWeight: 'bold',
-  },
-  separator: {
-    marginVertical: 30,
-    height: 1,
-    width: '80%',
-  },
-});
+const ModalScreen: React.FC<ModalProps> = ({ isOpen, onClose, carrinho }) => {
+  const list: CarrinhoSchema[] = carrinho || getProdutos() as CarrinhoSchema[];
+  const [selectProd, setSelectProd] = useState<ProdutoSchema>();
+  const [showEditModal, setShowEditModal] = useState<boolean>(false);
+
+  return (
+    <Center>
+      <Modal isOpen={isOpen} onClose={onClose} size="lg">
+        <Modal.Content maxWidth="350">
+          <Modal.CloseButton />
+          <Modal.Header>Lista de items</Modal.Header>
+          <Modal.Body>
+            <VStack space={4}>
+              {!carrinho ? (
+                <HStack alignItems="center" justifyContent="space-between" space={3}>
+                  <Text flex={4} textDecorationLine="underline" fontWeight="medium" numberOfLines={1} isTruncated>Nome</Text>
+                  <Text flex={1} textDecorationLine="underline" fontWeight="medium">Qnt</Text>
+                  <Text flex={1} textDecorationLine="underline" fontWeight="medium">Preço</Text>
+                </HStack>
+              ) :
+                (
+                  <HStack alignItems="center" justifyContent="space-between" space={3}>
+                    <Text flex={4} textDecorationLine="underline" fontWeight="medium">Nome</Text>
+                    <Text flex={1} textDecorationLine="underline" fontWeight="medium">Un</Text>
+                    <Text flex={1} textDecorationLine="underline" fontWeight="medium">Qant</Text>
+                    <Text flex={1} textDecorationLine="underline" fontWeight="medium">Total</Text>
+                  </HStack>
+                )}
+              {!carrinho ? list.map((item) => (
+                <Pressable 
+                  onLongPress={() => {
+                    console.log(item);
+                    setSelectProd(item);
+                    setShowEditModal(prevStatus => !prevStatus);
+                  }}
+                >
+                  <HStack key={item.nome} alignItems="center" justifyContent="space-between">
+                    <Text flex={4} fontWeight="medium" numberOfLines={1} isTruncated>{item.nome}</Text>
+                    <Text flex={1} color="blueGray.400">{item.quantProduto}</Text>
+                    <Text flex={1} color="green.500">{item.preco}</Text>
+                  </HStack>
+                </Pressable>
+              ))
+                :
+                list.map((item) => (
+                  <HStack key={item.nome} alignItems="center" justifyContent="space-between" space={3}>
+                    <Text flex={4} color="blueGray.400">{item.nome}</Text>
+                    <Text flex={1} color="green.500" textAlign="center">{item.preco}$</Text>
+                    <Text flex={1} color="blueGray.400" textAlign="center">{item.quantVenda}</Text>
+                    <Text flex={1} color="green.500" textAlign="center">{item.total.toFixed(2)}$</Text>
+                  </HStack>
+                ))
+              }
+            </VStack>
+          </Modal.Body>
+        </Modal.Content>
+      </Modal>
+
+      {/* {selectProd && (
+        <ModalEdit produto={selectProd} showModal={showEditModal} setShowModal={setShowEditModal} />
+      )} */}
+    </Center>
+  );
+};
+
+const createModal: React.FC<ModalProps> = ({ isOpen, onClose, carrinho }) => {
+  return (
+    <NativeBaseProvider>
+      <Center flex={1}>
+        <ModalScreen isOpen={isOpen} onClose={onClose} carrinho={carrinho} />
+      </Center>
+    </NativeBaseProvider>
+  );
+};
+
+export default createModal;

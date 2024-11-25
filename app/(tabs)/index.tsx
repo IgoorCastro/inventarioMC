@@ -1,15 +1,26 @@
 import { StyleSheet } from 'react-native';
+import { Center, Box, Image, NativeBaseProvider, VStack } from 'native-base';
 
-import EditScreenInfo from '@/components/EditScreenInfo';
-import { Text, View } from '@/components/Themed';
+import { Text, useThemeColor, View } from '@/components/Themed';
+import VendaModal from '@/components/ModalVenda';
+import ModalAddProduto from '@/components/ModalAddProduto';
+
+import Colors from '@/constants/Colors';
 
 export default function TabOneScreen() {
+  const backgroundColor = useThemeColor({ light: Colors.light.background, dark: Colors.dark.background }, 'background');
   return (
-    <View style={styles.container}>
-      <Text style={styles.title}>Tab One</Text>
-      <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)" />
-      <EditScreenInfo path="app/(tabs)/index.tsx" />
-    </View>
+    <NativeBaseProvider>
+      <VStack flex={1} padding={3} space={25} backgroundColor={backgroundColor}>
+        <Box width="100%">
+          <Text style={styles.title}>Comércio: MANGO</Text>
+        </Box>
+        <VStack borderRadius={5} flex={1} justifyContent="center" alignItems="center">
+          <VendaModal />          
+          <ModalAddProduto />
+        </VStack>
+      </VStack>
+    </NativeBaseProvider>
   );
 }
 
@@ -17,15 +28,20 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     alignItems: 'center',
-    justifyContent: 'center',
   },
   title: {
-    fontSize: 20,
+    fontSize: 15,
     fontWeight: 'bold',
   },
   separator: {
     marginVertical: 30,
     height: 1,
     width: '80%',
+  },
+  getStartedText: {
+    fontSize: 17,
+    lineHeight: 24,
+    textAlign: 'center',
+    marginBottom: 15
   },
 });
